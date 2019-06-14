@@ -1,32 +1,41 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Socks.Middleware
 {
     public abstract class DefaultMiddleware : IMiddleware
     {
-        protected DefaultMiddleware(MiddlewareDelegate next)
+        protected DefaultMiddleware()
         {
-            Next = next;
         }
 
-        protected MiddlewareDelegate Next { get;  }
+        public MiddlewareDelegate Next { get; set; }
 
-        public abstract Task Invoke(IMiddlewareContext context);
+        public abstract Task Invoke(ISockContext context);
+
+        void IMiddleware.SetNext(MiddlewareDelegate next) => Next = next;
     }
 
-    internal class DelegatingMiddleware : DefaultMiddleware
+    public abstract class PayloadSerializerMiddleware : DefaultMiddleware
     {
-        private readonly Func<IMiddlewareContext, MiddlewareDelegate, Task> _middleware;
-
-        public DelegatingMiddleware(Func<IMiddlewareContext, MiddlewareDelegate, Task> middleware, MiddlewareDelegate next) : base(next)
+        public PayloadSerializerMiddleware(Encoding encoding)
         {
-            _middleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            Encoding = encoding;
         }
 
-        public override async Task Invoke(IMiddlewareContext context)
-        {
-            await _middleware(context, Next);
-        }
+        public Encoding Encoding { get; }
     }
+
+    //public class JsonSerializerMiddleware : PayloadSerializerMiddleware
+    //{
+    //    public JsonSerializerMiddleware(Encoding encoding) : base(encoding)
+    //    {
+    //    }
+
+    //    public override Task Invoke(IMiddlewareContext context)
+    //    {
+    //        JsonConvert.
+    //    }
+    //}
 }

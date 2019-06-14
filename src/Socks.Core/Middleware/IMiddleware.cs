@@ -2,15 +2,10 @@
 
 namespace Socks.Middleware
 {
-    public delegate Task MiddlewareDelegate(IMiddlewareContext context, MiddlewareDelegate next);
-    
     public interface IMiddleware
     {
-        Task Invoke(IMiddlewareContext context);
-    }
+        void SetNext(MiddlewareDelegate next);
 
-    public interface IMiddlewareContext
-    {
-        
+        Task Invoke(ISockContext context);
     }
 }
