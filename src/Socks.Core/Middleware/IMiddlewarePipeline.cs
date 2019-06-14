@@ -4,6 +4,6 @@ namespace Socks.Middleware
 {
     public interface IMiddlewarePipeline
     {
-        Task Execute(ISockContext context);
+        Task ExecuteAsync(ISockContext context);
     }
 }

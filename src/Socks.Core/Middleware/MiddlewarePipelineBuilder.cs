@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Socks.Middleware
 {
@@ -44,7 +45,7 @@ namespace Socks.Middleware
                 previous.SetNext(pipelineTermination.Invoke);
             }
 
-            return new MiddlewarePipeline(middleware.ToArray());
+            return new MiddlewarePipeline(middleware.First());
         }
 
         private class MiddlewareRegistration
