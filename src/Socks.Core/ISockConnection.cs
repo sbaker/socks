@@ -15,7 +15,7 @@ namespace Socks
 
         Task ConnectAsync(string address, int port);
 
-        Task<ISockConnection> AcceptAsync(byte[] buffer);
+        Task<ISockConnection> AcceptAsync();
 
         Task<int> SendAsync(byte[] buffer);
 

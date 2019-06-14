@@ -9,22 +9,25 @@ namespace Socks.Cli
     {
         static void Main(string[] args)
         {
-            var builder = new MiddlewarePipelineBuilder()
-                .Use(() => new TestMiddleware());
-
+            // Setup the client connection
             var client = new SockConnection();
-            client.UsePipeline(builder.Build());
+            client.ConfigurePipeline(builder =>
+                builder.Use(() => new TestMiddleware())
+            );
 
+            // Setup the server to listen
             var server = new SockConnection();
-            server.UsePipeline(builder.Build());
+            server.ConfigurePipeline(builder =>
+                builder.Use(() => new TestMiddleware())
+            );
             server.Listen(9000);
 
-            var bytes = new byte[1024];
-            var connection = server.AcceptAsync(bytes);
+            var connection = server.AcceptAsync();
 
             client.ConnectAsync("127.0.0.1", 9000).Wait();
 
             var read = string.Empty;
+
             while (!string.IsNullOrEmpty(read = Console.ReadLine()))
             {
                 var sent = client.SendAsync(Encoding.Default.GetBytes(read)).Result;

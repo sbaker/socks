@@ -6,19 +6,16 @@ namespace Socks.Middleware
 {
     public class MiddlewarePipeline : IMiddlewarePipeline
     {
-        private readonly IMiddleware[] _pipeline;
+        private readonly IMiddleware _start;
 
-        public MiddlewarePipeline(IEnumerable<IMiddleware> pipeline)
+        public MiddlewarePipeline(IMiddleware startingMiddleware)
         {
-            _pipeline = pipeline.ToArray();
+            _start = startingMiddleware;
         }
 
-        public async Task Execute(ISockContext context)
+        public async Task ExecuteAsync(ISockContext context)
         {
-            for (int i = 0; i < _pipeline.Length - 1; i++)
-            {
-                await _pipeline[i].Invoke(context);
-            }
+            await _start.Invoke(context);
         }
     }
 }

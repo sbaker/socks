@@ -66,8 +66,9 @@ namespace Socks
             return await Socket.SendAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
         }
 
-        public async Task<ISockConnection> AcceptAsync(byte[] buffer)
+        public async Task<ISockConnection> AcceptAsync()
         {
+            AssertNotDisposed();
             var accept = await Socket.AcceptAsync();
             var connection = new SockConnection(accept, Pipeline);
             return connection;
@@ -75,17 +76,20 @@ namespace Socks
 
         public async Task<int> ReceiveAsync(byte[] buffer)
         {
+            AssertNotDisposed();
+
             var received = await Socket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
 
             var context = new DefaultSockContext(buffer, this);
 
-            await Pipeline.Execute(context);
+            await Pipeline.ExecuteAsync(context);
 
             return received;
         }
 
         public void Listen(int port)
         {
+            AssertNotDisposed();
             Socket.Bind(new IPEndPoint(IPAddress.Loopback, port));
             Socket.Listen(10);
         }
