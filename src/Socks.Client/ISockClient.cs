@@ -1,5 +1,5 @@
 ﻿using System;
-using Socks.Core;
+using Socks;
 
 namespace Socks.Client
 {
