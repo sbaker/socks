@@ -1,10 +1,12 @@
+using Socks.Net;
+
 namespace Socks
 {
     public interface ISockContext
     {
         dynamic Properties { get; }
 
-        ISockConnection Connection { get; }
+        ISock Sock { get; }
 
         ISockRequest Request { get; }
 

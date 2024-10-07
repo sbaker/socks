@@ -1,17 +1,14 @@
-﻿using System.IO;
+﻿using Socks.Net;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Socks
 {
-    public interface ISockRequest
+
+	public interface ISockRequest : IRequest
     {
-        ISockContext Context { get; }
+		Task<T> ReadAsAsync<T>();
 
-        int Length { get; }
-
-        T ReadAs<T>();
-
-        string ReadAsString();
-
-        Stream ReadAsStream();
+        Task<Stream> ReadAsStreamAsync();
     }
 }

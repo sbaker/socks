@@ -1,21 +1,26 @@
 ﻿using Newtonsoft.Json;
+using Socks.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Socks
 {
-    public class DefaultSockResponse : ISockResponse
+
+	public class DefaultSockResponse : ISockResponse
     {
-        public DefaultSockResponse(ISockContext context)
+        public DefaultSockResponse(ISockContext context, IWritableSock sock)
         {
             Context = context;
+            Sock = sock;
         }
 
         public ISockContext Context { get; }
 
-        public async Task WriteAsync(string value)
+		public IWritableSock Sock { get; }
+
+		public async Task WriteAsync(string value)
         {
-            await Context.Connection.SendAsync(Encoding.UTF8.GetBytes(value));
+            await Sock.WriteAsync(Encoding.UTF8.GetBytes(value));
         }
 
         public async Task WriteAsync<T>(T value)

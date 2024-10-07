@@ -8,8 +8,7 @@ namespace Socks.Extensions
     {
         public static IMiddlewarePipelineBuilder Use(this IMiddlewarePipelineBuilder builder, Func<ISockContext, MiddlewareDelegate, Task> middleware)
         {
-            builder.Use<DelegatingMiddleware>(() => new DelegatingMiddleware(middleware));
-            return builder;
-        }
+            return builder.Use(() => new DelegatingMiddleware(middleware));
+		}
     }
 }

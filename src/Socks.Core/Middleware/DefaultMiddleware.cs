@@ -19,7 +19,7 @@ namespace Socks.Middleware
 
     public abstract class PayloadSerializerMiddleware : DefaultMiddleware
     {
-        public PayloadSerializerMiddleware(Encoding encoding)
+        public PayloadSerializerMiddleware(Encoding encoding = null)
         {
             Encoding = encoding;
         }

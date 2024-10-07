@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Socks.Middleware
 {
-    internal class DelegatingMiddleware : DefaultMiddleware
+    public class DelegatingMiddleware : DefaultMiddleware
     {
         private readonly Func<ISockContext, MiddlewareDelegate, Task> _middleware;
 

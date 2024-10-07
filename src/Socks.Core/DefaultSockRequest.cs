@@ -1,43 +1,35 @@
 ﻿using Newtonsoft.Json;
+using Socks.Net;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Socks
 {
-    public class DefaultSockRequest : ISockRequest
+
+	public class DefaultSockRequest : SockRequest<StreamContent>, ISockRequest
     {
-        public DefaultSockRequest(byte[] buffer, ISockContext context)
+        public DefaultSockRequest(ISockContext context, ISock sock) : base(sock)
         {
-            Buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
             Context = context;
-        }
+            Body = new StreamContent
+            {
+                Content = sock.GetStream()
+            };
+		}
 
         public ISockContext Context { get; }
 
-        public int Length
+		public async Task<T> ReadAsAsync<T>()
         {
-            get
-            {
-                return Buffer.Length;
-            }
-        }
+            var body = await ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(body);
+		}
 
-        protected byte[] Buffer { get; }
-
-        public T ReadAs<T>()
+		public Task<Stream> ReadAsStreamAsync()
         {
-            return JsonConvert.DeserializeObject<T>(ReadAsString());
-        }
-
-        public Stream ReadAsStream()
-        {
-            return new MemoryStream(Buffer);
-        }
-
-        public string ReadAsString()
-        {
-            return Encoding.UTF8.GetString(Buffer);
+            return Task.FromResult(Body.Content);
         }
     }
 }

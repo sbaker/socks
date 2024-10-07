@@ -1,57 +1,87 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
+using Socks;
+using Socks.Client;
 using Socks.Middleware;
+using Socks.Net;
+using Socks.Server;
 
-namespace Socks.Cli
+async Task TestLocalConnection()
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            // Setup the client connection
-            var client = new SockConnection();
-            client.ConfigurePipeline(builder =>
-                builder.Use(() => new TestMiddleware())
-            );
+	// Setup the client connection
+	var client = new SockFactory();
+	client.ConfigurePipeline(builder =>
+		builder.Use(() => new TestMiddleware("Client"))
+	);
 
-            // Setup the server to listen
-            var server = new SockConnection();
-            server.ConfigurePipeline(builder =>
-                builder.Use(() => new TestMiddleware())
-            );
-            server.Listen(9000);
+	// Setup the server to listen
+	var server = new SockFactory();
+	server.ConfigurePipeline(builder =>
+		builder.Use(() => new TestMiddleware("Server"))
+	);
+	
+	var listener = server.CreateListener(9000);
 
-            var connection = server.AcceptAsync();
+	var sock = await listener.AcceptAsync();
 
-            client.ConnectAsync("127.0.0.1", 9000).Wait();
+	var clientSock = client.ConnectAsync("127.0.0.1", 9000).Result;
 
-            var read = string.Empty;
+	for (var i = 0; i < 10000; i++)
+	{
+		var sent = await clientSock.SendRequestAsync(new SockRequest { Body = $"Sent:{i}" });
 
-            while (!string.IsNullOrEmpty(read = Console.ReadLine()))
-            {
-                var sent = client.SendAsync(Encoding.Default.GetBytes(read)).Result;
-                Console.WriteLine($"Sent:{sent}");
-                var received = connection.Result.ReceiveAsync(new byte[sent]);
-            }
+		var buffer = new byte[1024];
+		var received = await sock.AsReadable().ReadAsync(buffer);
 
-            client.Dispose();
-            server.Dispose();
-            connection.Dispose();
-        }
+        Console.WriteLine($"Received: {Encoding.Default.GetString(buffer)}");
+	}
 
-        public class TestMiddleware : DefaultMiddleware
-        {
-            public TestMiddleware()
-            {
-            }
-
-            public override async Task Invoke(ISockContext context)
-            {
-                Console.WriteLine($"Buffer length: {context.Request.Length}");
-                Console.WriteLine($"Buffer data:\n{context.Request.ReadAsString()}");
-                await Next(context);
-            }
-        }
-    }
+	listener.Dispose();
 }
+
+async Task<ISockServer> StartServer()
+{
+	var server = new SockServer();
+	server.ConfigurePipeline(builder => {
+		builder.Use(() => new TestMiddleware("server"))
+		.Use(() => new DelegatingMiddleware((context, next) => {
+			Console.WriteLine($"message received {context.Request.ReadAsStringAsync()}");
+			return next(context);
+		}));
+	});
+
+	server.StartAsync(9000).ContinueWith(async t =>
+	{
+	
+	});
+
+	return server;
+}
+
+async Task StartClient()
+{
+	try
+	{
+		var client = new SockClient();
+		var sender = await client.CreateSender("sock://localhost:9000");
+
+		string? text;
+		while (!string.IsNullOrEmpty(text = Console.ReadLine()))
+		{
+			var response = await sender.WriteRequestAsync(new SockRequest { Body = text });
+
+			var message = response.ReadAsStringAsync();
+		}
+	}
+	catch(Exception e)
+	{
+
+	}
+}
+
+//await TestLocalConnection();
+
+var server = await StartServer();
+
+await StartClient();
+
+await server.StopAsync();

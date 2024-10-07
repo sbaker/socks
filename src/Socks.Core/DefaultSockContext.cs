@@ -1,18 +1,22 @@
 ﻿using System.Dynamic;
+using System.Text;
+using Socks.Net;
 
 namespace Socks
 {
-    internal class DefaultSockContext : ISockContext
+    public class DefaultSockContext : ISockContext
     {
-        public DefaultSockContext(byte[] buffer, ISockConnection connection)
+        public DefaultSockContext(ISock sock)
         {
-            Connection = connection;
-            Response = new DefaultSockResponse(this);
-            Request = new DefaultSockRequest(buffer, this);
+            Sock = sock;
+            Response = new DefaultSockResponse(this, sock.AsWritable());
+
+            var request = new DefaultSockRequest(this, sock);
+            Request = request;
             Properties = new ExpandoObject();
         }
 
-        public ISockConnection Connection { get; }
+        public ISock Sock { get; }
 
         public ISockRequest Request { get; }
 
